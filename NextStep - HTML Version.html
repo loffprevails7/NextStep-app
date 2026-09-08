@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NextStep</title>
+  <style>
+    :root {
+      --bg: #f5f2ed;
+      --card: #fffcf8;
+      --text: #2f2c28;
+      --muted: #6e6860;
+      --accent: #5b7a9d;
+      --accent-soft: #e9eef4;
+      --border: #e4ddd4;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-weight: 600;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+
+    .logo-mark { width: 28px; height: 28px; }
+    .logo-mark svg { width: 100%; height: 100%; }
+
+    nav { display: flex; gap: 0.25rem; }
+
+    nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.88rem;
+      cursor: pointer;
+      padding: 0.4rem 0.7rem;
+      border-radius: 7px;
+    }
+    nav button:hover { background: var(--accent-soft); color: var(--accent); }
+
+    main {
+      flex: 1;
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      width: 100%;
+    }
+
+    .screen { display: none; animation: fadeIn 0.35s ease; }
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 600;
+      margin-bottom: 0.85rem;
+      letter-spacing: -0.025em;
+    }
+
+    p { color: var(--muted); margin-bottom: 0.9rem; font-size: 1.02rem; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.45rem;
+      border-radius: 9px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:hover { background: #4c6a8c; }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+    .btn-secondary:hover { background: var(--accent-soft); }
+
+    .btn-danger {
+      background: transparent;
+      color: #a84a3f;
+      border: 1px solid #d4a5a0;
+      font-size: 0.88rem;
+      padding: 0.55rem 1rem;
+    }
+    .btn-danger:hover { background: #fdf0ee; }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.4rem;
+    }
+
+    .upload-zone {
+      border: 2px dashed #d8cfc4;
+      border-radius: var(--radius);
+      padding: 2.4rem 1.5rem;
+      text-align: center;
+      background: #faf7f3;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .upload-zone .icon { font-size: 1.8rem; margin-bottom: 0.4rem; opacity: 0.7; }
+    .upload-zone p { margin: 0.35rem 0 0; font-size: 0.9rem; }
+
+    .file-list { margin-top: 1.1rem; display: none; }
+    .file-list.visible { display: block; }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.65rem 0.9rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-size: 0.92rem;
+    }
+    .file-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item .size { color: var(--muted); font-size: 0.82rem; }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-item input[type="checkbox"] {
+      margin-top: 0.3rem;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+    .checklist-item .title { font-weight: 500; margin-bottom: 0.25rem; }
+    .checklist-item .meta { font-size: 0.88rem; color: var(--muted); }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 0.12rem 0.48rem;
+      border-radius: 4px;
+      margin-left: 0.35rem;
+      font-weight: 500;
+    }
+    .tag.urgent { background: #f8e8e6; color: #a84a3f; }
+    .tag.later { background: #e8f0e9; color: #3d6b42; }
+
+    .doc-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.95rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-item:last-child { border-bottom: none; }
+    .doc-icon {
+      width: 40px; height: 40px;
+      background: var(--accent-soft);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-info .name {
+      font-weight: 500; font-size: 0.95rem; margin-bottom: 0.15rem;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .doc-info .meta { font-size: 0.82rem; color: var(--muted); }
+    .doc-category {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: #f0ebe3;
+      color: #6e5c45;
+      flex-shrink: 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .privacy-note {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-top: 1.4rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .resource-list { list-style: none; margin: 1.1rem 0; }
+    .resource-list li {
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+    .resource-list li:last-child { border-bottom: none; }
+    .resource-list a { color: var(--accent); text-decoration: none; }
+    .resource-list a:hover { text-decoration: underline; }
+
+    .gentle-note {
+      background: #f8f1e8;
+      border: 1px solid #ead9c4;
+      border-radius: 10px;
+      padding: 0.85rem 1.1rem;
+      font-size: 0.88rem;
+      color: #6e5c45;
+      margin-bottom: 1.3rem;
+      line-height: 1.45;
+    }
+
+    .small-link {
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      margin-top: 1rem;
+      display: inline-block;
+    }
+    .small-link:hover { color: var(--accent); }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .status-bar {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="logo" onclick="showScreen('welcome')">
+      <div class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20h6v4H4z" fill="#5b7a9d" opacity="0.35"/>
+          <path d="M11 14h6v10h-6z" fill="#5b7a9d" opacity="0.55"/>
+          <path d="M18 8h6v16h-6z" fill="#5b7a9d"/>
+          <path d="M3 21.5c4-3 8-6 11-9 2.5-2.5 5-4 8-5.5" stroke="#5b7a9d" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.7"/>
+        </svg>
+      </div>
+      NextStep
+    </button>
+    <nav>
+      <button onclick="showScreen('welcome')">Home</button>
+      <button onclick="showScreen('archive')">Archive</button>
+      <button onclick="showScreen('support')">Support</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- WELCOME -->
+    <section id="welcome" class="screen active">
+      <div class="card">
+        <h1>You’re carrying a lot right now.</h1>
+        <p>When you lose a loved one, the practical pieces — papers, photos, accounts — can feel overwhelming on top of everything else.</p>
+        <p>NextStep helps you sort what needs attention and what can wait, so you can take the next right step when you’re ready.</p>
+        <p>No pressure. Pause anytime.</p>
+        <div class="btn-group">
+          <button class="btn" onclick="showScreen('upload')">Begin</button>
+        </div>
+      </div>
+      <p class="privacy-note">Everything stays on your device. You can clear it anytime. Nothing is sent anywhere.</p>
+      <a href="#" class="small-link" onclick="showScreen('support'); return false;">If you need support right now →</a>
+    </section>
+
+    <!-- UPLOAD -->
+    <section id="upload" class="screen">
+      <h1>Start with one pile</h1>
+      <p>You don’t have to do everything at once. Begin with a few documents or photos. You can add more later.</p>
+
+      <div class="gentle-note">
+        This version saves everything only on your device. Real AI analysis is not connected yet — you’ll see a gentle example prioritization after adding files.
+      </div>
+
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <div class="icon">📄</div>
+        <strong>Tap or drop files here</strong>
+        <p>Photos of papers, PDFs, or images</p>
+        <input type="file" id="fileInput" multiple accept="image/*,.pdf" style="display:none" onchange="handleFiles(this.files)">
+      </div>
+
+      <div class="file-list" id="fileList"></div>
+
+      <div class="btn-group" id="uploadActions" style="display:none;">
+        <button class="btn" onclick="continueToChecklist()">Continue</button>
+        <button class="btn btn-secondary" onclick="clearPending()">Clear</button>
+      </div>
+
+      <div class="btn-group" id="uploadBack">
+        <button class="btn btn-secondary" onclick="showScreen('welcome')">Back</button>
+      </div>
+    </section>
+
+    <!-- CHECKLIST -->
+    <section id="checklist" class="screen">
+      <h1>Your next steps</h1>
+      <p>Here’s a gentle prioritization. You can change it, skip items, or come back later. Nothing is forced.</p>
+
+      <div class="gentle-note" id="checklistNote">
+        Example suggestions for now. When AI is connected, these will come from your actual documents.
+      </div>
+
+      <div class="card" id="checklistCard">
+        <!-- Filled by JavaScript -->
+      </div>
+
+      <div class="btn-group">
+        <button class="btn" onclick="showScreen('archive')">View archive</button>
+        <button class="btn btn-secondary" onclick="showScreen('upload')">Add more</button>
+      </div>
+    </section>
+
+    <!-- ARCHIVE -->
+    <section id="archive" class="screen">
+      <h1>Your documents</h1>
+      <p>Everything you’ve added stays here on your device. You can return anytime.</p>
+
+      <div class="status-bar" id="archiveStatus"></div>
+
+      <div class="card" id="archiveList">
+        <!-- Filled by JavaScript -->
+      </div>
+
+      <div class="btn-group">
+        <button class="btn" onclick="showScreen('upload')">Add more</button>
+        <button class="btn btn-secondary" onclick="showScreen('checklist')">Back to steps</button>
+      </div>
+
+      <div class="btn-group" style="margin-top: 0.5rem;">
+        <button class="btn btn-danger" onclick="clearAllData()">Clear everything on this device</button>
+      </div>
+    </section>
+
+    <!-- SUPPORT -->
+    <section id="support" class="screen">
+      <h1>Support</h1>
+      <div class="card">
+        <p>You’re not alone in this.</p>
+        <p>If you need someone to talk to right now, or if the weight feels too heavy, these external resources are available. NextStep itself is a practical organization tool — not a counseling or crisis service.</p>
+
+        <ul class="resource-list">
+          <li>
+            <strong>988 Suicide & Crisis Lifeline</strong><br>
+            Call or text 988 (United States)<br>
+            <a href="https://988lifeline.org" target="_blank" rel="noopener">988lifeline.org</a>
+          </li>
+          <li>
+            <strong>Crisis Text Line</strong><br>
+            Text HOME to 741741<br>
+            <a href="https://www.crisistextline.org" target="_blank" rel="noopener">crisistextline.org</a>
+          </li>
+          <li>
+            <strong>Local grief support</strong><br>
+            A trusted funeral home, place of worship, or community organization can often point you to local bereavement groups.
+          </li>
+        </ul>
+
+        <p>You can return to your work at any time.</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn" onclick="showScreen('welcome')">Return to Home</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    NextStep · Runs fully offline on your device
+  </footer>
+
+  <script>
+    // ----------------------------------------------------------------
+    // Simple offline storage (everything stays on this device only)
+    // ----------------------------------------------------------------
+    const STORAGE_KEY = 'nextstep_data_v1';
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { documents: [], checklist: {} };
+        return JSON.parse(raw);
+      } catch (e) {
+        return { documents: [], checklist: {} };
+      }
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    let data = loadData();
+    let pendingFiles = []; // temporary selection before "Continue"
+
+    // ----------------------------------------------------------------
+    // Navigation
+    // ----------------------------------------------------------------
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo(0, 0);
+
+      if (id === 'archive') renderArchive();
+      if (id === 'checklist') renderChecklist();
+    }
+
+    // ----------------------------------------------------------------
+    // Upload handling
+    // ----------------------------------------------------------------
+    const zone = document.getElementById('uploadZone');
+    const fileList = document.getElementById('fileList');
+    const uploadActions = document.getElementById('uploadActions');
+    const uploadBack = document.getElementById('uploadBack');
+
+    if (zone) {
+      zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+      });
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function handleFiles(files) {
+      if (!files || files.length === 0) return;
+      pendingFiles = Array.from(files).map(f => ({
+        name: f.name,
+        size: f.size,
+        type: f.type || 'unknown',
+        addedAt: new Date().toISOString()
+      }));
+
+      fileList.innerHTML = '';
+      fileList.classList.add('visible');
+      pendingFiles.forEach(file => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `<span>📄</span><span class="name">${escapeHtml(file.name)}</span><span class="size">${formatSize(file.size)}</span>`;
+        fileList.appendChild(item);
+      });
+      uploadActions.style.display = 'flex';
+      uploadBack.style.display = 'none';
+    }
+
+    function clearPending() {
+      document.getElementById('fileInput').value = '';
+      pendingFiles = [];
+      fileList.innerHTML = '';
+      fileList.classList.remove('visible');
+      uploadActions.style.display = 'none';
+      uploadBack.style.display = 'flex';
+    }
+
+    function continueToChecklist() {
+      if (pendingFiles.length === 0) return;
+
+      // Add to permanent offline storage
+      pendingFiles.forEach(f => {
+        // Simple category guess for the offline version
+        const name = f.name.toLowerCase();
+        let category = 'Practical';
+        if (name.includes('photo') || name.includes('img') || name.includes('jpg') || name.includes('png') || name.includes('album')) {
+          category = 'Memories';
+        }
+        data.documents.push({
+          id: Date.now() + Math.random().toString(36).slice(2, 7),
+          name: f.name,
+          size: f.size,
+          category: category,
+          addedAt: f.addedAt
+        });
+      });
+      saveData(data);
+      clearPending();
+      showScreen('checklist');
+    }
+
+    // ----------------------------------------------------------------
+    // Checklist (example steps + persisted check state)
+    // ----------------------------------------------------------------
+    const EXAMPLE_STEPS = [
+      {
+        id: 'step1',
+        title: 'Contact the life insurance company',
+        meta: 'There may be a time-sensitive step here. You can do this when you feel ready.',
+        tag: 'Sooner',
+        tagClass: 'urgent'
+      },
+      {
+        id: 'step2',
+        title: 'Gather recent bank statements',
+        meta: 'Collecting the latest ones can help later. No rush.',
+        tag: null
+      },
+      {
+        id: 'step3',
+        title: 'Look through the photo albums',
+        meta: 'These can wait. There is no deadline for memories.',
+        tag: 'When ready',
+        tagClass: 'later'
+      },
+      {
+        id: 'step4',
+        title: 'Review open utility accounts',
+        meta: 'Possible accounts that may need attention when you have capacity.',
+        tag: null
+      }
+    ];
+
+    function renderChecklist() {
+      const card = document.getElementById('checklistCard');
+      card.innerHTML = '';
+
+      EXAMPLE_STEPS.forEach(step => {
+        const checked = data.checklist[step.id] === true;
+        const item = document.createElement('div');
+        item.className = 'checklist-item';
+        item.innerHTML = `
+          <input type="checkbox" id="${step.id}" ${checked ? 'checked' : ''} onchange="toggleStep('${step.id}', this.checked)">
+          <div class="content">
+            <div class="title">${escapeHtml(step.title)}${step.tag ? ` <span class="tag ${step.tagClass || ''}">${step.tag}</span>` : ''}</div>
+            <div class="meta">${escapeHtml(step.meta)}</div>
+          </div>
+        `;
+        card.appendChild(item);
+      });
+    }
+
+    function toggleStep(id, checked) {
+      data.checklist[id] = checked;
+      saveData(data);
+    }
+
+    // ----------------------------------------------------------------
+    // Archive
+    // ----------------------------------------------------------------
+    function renderArchive() {
+      const list = document.getElementById('archiveList');
+      const status = document.getElementById('archiveStatus');
+      list.innerHTML = '';
+
+      if (data.documents.length === 0) {
+        status.textContent = '';
+        list.innerHTML = '<div class="empty-state">No documents yet.<br>You can add some whenever you feel ready.</div>';
+        return;
+      }
+
+      status.textContent = `${data.documents.length} document${data.documents.length === 1 ? '' : 's'} saved on this device`;
+
+      // Newest first
+      const docs = [...data.documents].reverse();
+      docs.forEach(doc => {
+        const date = new Date(doc.addedAt);
+        const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        const icon = doc.category === 'Memories' ? '🖼️' : '📄';
+        const item = document.createElement('div');
+        item.className = 'doc-item';
+        item.innerHTML = `
+          <div class="doc-icon">${icon}</div>
+          <div class="doc-info">
+            <div class="name">${escapeHtml(doc.name)}</div>
+            <div class="meta">Added ${dateStr} · ${formatSize(doc.size)}</div>
+          </div>
+          <span class="doc-category">${escapeHtml(doc.category)}</span>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // ----------------------------------------------------------------
+    // Clear everything
+    // ----------------------------------------------------------------
+    function clearAllData() {
+      if (!confirm('This will remove all documents and checklist progress saved on this device. Continue?')) return;
+      data = { documents: [], checklist: {} };
+      saveData(data);
+      renderArchive();
+    }
+
+    // ----------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Initial render if needed
+    // (screens render on demand)
+  </script>
+</body>
+</html>
